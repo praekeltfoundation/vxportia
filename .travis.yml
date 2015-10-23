@@ -9,6 +9,9 @@ cache:
 env:
   - TZ=UTC
 
+services:
+  - redis-server
+
 install:
   - pip install coveralls
   - pip install wheel
