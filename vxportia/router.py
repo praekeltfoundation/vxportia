@@ -41,7 +41,7 @@ class PortiaRouter(BaseDispatchRouter):
 
         if len(self.config['exposed_names']) != 1:
             raise DispatcherError(
-                ('PortiaRouter only able to work with 1 exposed_name, '
+                ('PortiaRouter is only able to work with 1 exposed_name, '
                  'there are %s configured.') % (
                     len(self.config['exposed_names'],)))
 
