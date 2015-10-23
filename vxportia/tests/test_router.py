@@ -3,8 +3,9 @@ import pkg_resources
 from twisted.internet.defer import inlineCallbacks
 from twisted.internet.task import Clock
 
-from vumi.tests.helpers import VumiTestCase, MessageHelper
+from vumi.errors import DispatcherError
 from vumi.dispatchers.tests.helpers import DummyDispatcher
+from vumi.tests.helpers import VumiTestCase, MessageHelper
 
 from vxportia.router import PortiaRouter
 
@@ -36,13 +37,13 @@ class TestPortiaRouter(VumiTestCase):
             'portia': {
                 'client_endpoint': 'tcp:%s:%s' % (self.listener_host,
                                                   self.listener_port),
-                'default_fallback': 'transport_1',
+                'default_transport': 'transport_3',
                 'mappings': {
                     'MNO1': 'transport_1',
                     'MNO2': 'transport_2',
                 },
             },
-            'transport_names': ['transport_1', 'transport_2'],
+            'transport_names': ['transport_1', 'transport_2', 'transport_3'],
             'exposed_names': ['app'],
         }
 
@@ -87,3 +88,36 @@ class TestPortiaRouter(VumiTestCase):
         yield self.router.dispatch_outbound_message(msg)
         publishers = self.dispatcher.transport_publisher
         self.assertEqual(publishers['transport_1'].msgs, [msg])
+
+    @inlineCallbacks
+    def test_dispatch_default_transport(self):
+        msg = self.msg_helper.make_outbound("1", to_addr='27123456789')
+        yield self.router.dispatch_outbound_message(msg)
+        publishers = self.dispatcher.transport_publisher
+        # NOTE: transport_3 is the default transport
+        self.assertEqual(publishers['transport_3'].msgs, [msg])
+
+    @inlineCallbacks
+    def test_dispatch_unresolveable_transport(self):
+        # NOTE: we're override the value set by the configuration to
+        #       stop the default fallback behaviour
+        self.router.default_transport = None
+        msg = self.msg_helper.make_outbound("1", to_addr='27123456789')
+        f = yield self.assertFailure(
+            self.router.dispatch_outbound_message(msg), DispatcherError)
+        self.assertEqual(
+            str(f), "Unable to dispatch outbound message for MNO None.")
+
+    @inlineCallbacks
+    def test_dispatch_unroutable_mno(self):
+        # NOTE: we're override the value set by the configuration to
+        #       stop the default fallback behaviour
+        self.router.default_transport = None
+        yield self.portia.annotate(
+            '27123456789', key='observed-network', value='SURPRISE!',
+            timestamp=self.portia.now())
+        msg = self.msg_helper.make_outbound("1", to_addr='27123456789')
+        f = yield self.assertFailure(
+            self.router.dispatch_outbound_message(msg), DispatcherError)
+        self.assertEqual(
+            str(f), "Unable to dispatch outbound message for MNO SURPRISE!.")
