@@ -84,7 +84,6 @@ class PortiaRouter(BaseDispatchRouter):
         transport_name = (
             self.mno_transport_map.get(portia_response['network'])
             or self.default_transport)
-        print 'transport_name', transport_name
         if not transport_name:
             raise DispatcherError(
                 'Unable to dispatch outbound message for MNO %s.' % (
