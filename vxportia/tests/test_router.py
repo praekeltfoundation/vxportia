@@ -70,11 +70,11 @@ class TestPortiaRouter(VumiTestCase):
 
     @inlineCallbacks
     def test_dispatch_inbound_event(self):
+        original_outbound = self.msg_helper.make_outbound(
+            'hello world', to_addr='27123456789', transport_name='transport_1')
         ack = self.msg_helper.make_ack(
-            from_addr='27123456789', transport_name='transport_1')
+            original_outbound, transport_name='transport_1')
         yield self.router.dispatch_inbound_event(ack)
-        response = yield self.portia.resolve('27123456789')
-        self.assertEqual(response['network'], None)
         publishers = self.dispatcher.exposed_event_publisher
         self.assertEqual(publishers['app'].msgs, [ack])
 
