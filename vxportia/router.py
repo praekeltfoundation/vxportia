@@ -27,11 +27,7 @@ class PortiaRouter(BaseDispatchRouter):
         self.transport_mno_map = dict([
             (transport_name, mno)
             for mno, transport_name in self.mno_transport_map.items()])
-        self.default_transport = self.portia_config.get('default_transport')
-
         known_transport_names = self.mno_transport_map.values()
-        if self.default_transport:
-            known_transport_names.append(self.default_transport)
 
         if (set(known_transport_names) !=
                 set(self.config['transport_names'])):
@@ -81,9 +77,7 @@ class PortiaRouter(BaseDispatchRouter):
             self.exposed_name, event.copy())
 
     def dispatch_resolved_outbound_message(self, portia_response, msg):
-        transport_name = (
-            self.mno_transport_map.get(portia_response['network'])
-            or self.default_transport)
+        transport_name = self.mno_transport_map.get(portia_response['network'])
         if not transport_name:
             raise DispatcherError(
                 'Unable to dispatch outbound message for MNO %s.' % (
