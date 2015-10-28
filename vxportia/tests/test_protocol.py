@@ -52,7 +52,7 @@ class TestPortiaProtocol(TestCase):
         return response_d
 
     def reply(self, command, response={}, status='ok', message=None):
-        self.proto.parseLine(json.dumps({
+        self.proto.dataReceived('%s%s' % (json.dumps({
             'status': status,
             'cmd': 'reply',
             'reference_cmd': command['cmd'],
@@ -60,7 +60,7 @@ class TestPortiaProtocol(TestCase):
             'version': command['version'],
             'response': response,
             'message': message,
-        }))
+        }), self.proto.delimiter))
 
     @inlineCallbacks
     def test_get(self):
