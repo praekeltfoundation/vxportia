@@ -53,11 +53,11 @@ class PortiaRouter(BaseDispatchRouter):
 
     def dispatch_inbound_message(self, msg):
         return self.dispatch_inbound_message_from_mno(
-            self.transport_mno_map[msg['transport_name']], msg.copy())
+            self.transport_mno_map[msg['transport_name']], msg)
 
     def dispatch_inbound_event(self, event):
         return self.dispatch_inbound_event_from_mno(
-            self.transport_mno_map[event['transport_name']], event.copy())
+            self.transport_mno_map[event['transport_name']], event)
 
     def dispatch_outbound_message(self, msg):
         d = self.portia.resolve(msg['to_addr'])
@@ -69,12 +69,12 @@ class PortiaRouter(BaseDispatchRouter):
             msg['from_addr'], key='observed-network', value=mno)
         d.addCallback(
             lambda _: self.dispatcher.publish_inbound_message(
-                self.exposed_name, msg.copy()))
+                self.exposed_name, msg))
         return d
 
     def dispatch_inbound_event_from_mno(self, mno, event):
         return self.dispatcher.publish_inbound_event(
-            self.exposed_name, event.copy())
+            self.exposed_name, event)
 
     def dispatch_resolved_outbound_message(self, portia_response, msg):
         transport_name = self.mno_transport_map.get(portia_response['network'])
@@ -83,4 +83,4 @@ class PortiaRouter(BaseDispatchRouter):
                 'Unable to dispatch outbound message for MNO %s.' % (
                     portia_response['network'],))
         return self.dispatcher.publish_outbound_message(
-            transport_name, msg.copy())
+            transport_name, msg)
