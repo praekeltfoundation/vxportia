@@ -16,7 +16,7 @@ def portia_normalize_msisdn(msisdn):
 
 
 class PortiaDispatcherConfig(Dispatcher.CONFIG_CLASS):
-    client_endpoint = ConfigClientEndpoint(
+    portia_endpoint = ConfigClientEndpoint(
         'The Twisted Endpoint to use when connecting to the Portia server.',
         required=True, static=True)
     mapping = ConfigDict(
@@ -51,7 +51,7 @@ class PortiaDispatcher(Dispatcher):
                     len(config.receive_outbound_connectors,)))
 
         self.ro_connector = config.receive_outbound_connectors[0]
-        self.portia = yield config.client_endpoint.connect(
+        self.portia = yield config.portia_connector.connect(
             Factory.forProtocol(PortiaProtocol))
         self.portia.clock = self.clock
 

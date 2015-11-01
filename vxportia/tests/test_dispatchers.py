@@ -42,7 +42,7 @@ class TestPortiaDispatcher(VumiTestCase):
         config = {
             "receive_inbound_connectors": ["transport1", "transport2"],
             "receive_outbound_connectors": ["app1"],
-            "client_endpoint": "tcp:%s:%s" % (self.listener_host,
+            "portia_endpoint": "tcp:%s:%s" % (self.listener_host,
                                               self.listener_port),
             "mapping": {
                 "transport1": {
