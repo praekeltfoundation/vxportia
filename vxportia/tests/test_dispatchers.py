@@ -93,6 +93,15 @@ class TestPortiaDispatcher(VumiTestCase):
             ('PortiaRouter is only able to work with 1 receive outbound '
              'connector, there are 2 configured.'))
 
+    def test_single_receive_inbound_connector_mapping(self):
+        failure = self.assertRaises(
+            DispatcherError, self.get_dispatcher,
+            receive_inbound_connectors=[
+                'transport1', 'transport2', 'transport3'])
+        self.assertEqual(
+            str(failure),
+            ('Not all receive_inbound_connectors mapped to MNOs.'))
+
     @inlineCallbacks
     def test_inbound_message_routing(self):
         from_addr = '+27123456789'

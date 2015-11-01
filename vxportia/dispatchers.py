@@ -26,12 +26,18 @@ class PortiaDispatcherConfig(Dispatcher.CONFIG_CLASS):
 
     def post_validate(self):
         declared_mnos = []
+        mapped_transports = []
         for transport, endpoints in self.mapping.items():
             for endpoint, mno in endpoints.items():
                 declared_mnos.append(mno)
+                mapped_transports.append(transport)
 
         if len(set(declared_mnos)) != len(declared_mnos):
             raise DispatcherError('PortiaDispatcher mappings are not unique.')
+
+        if set(mapped_transports) != set(self.receive_inbound_connectors):
+            raise DispatcherError(
+                'Not all receive_inbound_connectors mapped to MNOs.')
 
         if len(self.receive_outbound_connectors) != 1:
             raise DispatcherError(
