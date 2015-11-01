@@ -67,9 +67,8 @@ class TestPortiaDispatcher(VumiTestCase):
         msg.set_routing_endpoint(endpoint)
         self.assertEqual([msg], dispatched_msgs)
 
-    @inlineCallbacks
     def test_unique_mno_config(self):
-        failure = yield self.assertFailure(self.get_dispatcher(mapping={
+        failure = self.assertRaises(DispatcherError, self.get_dispatcher, mapping={
             'transport1': {
                 "default": 'mno1',
             },
@@ -77,16 +76,15 @@ class TestPortiaDispatcher(VumiTestCase):
                 "default": 'mno1',
                 "ep1": 'mno2',
             },
-        }), DispatcherError)
+        })
         self.assertEqual(
             str(failure),
             'PortiaDispatcher mappings are not unique.')
 
-    @inlineCallbacks
     def test_single_receive_outbound_connector(self):
-        failure = yield self.assertFailure(
-            self.get_dispatcher(receive_outbound_connectors=['app1', 'app2']),
-            DispatcherError)
+        failure = self.assertRaises(
+            DispatcherError, self.get_dispatcher,
+            receive_outbound_connectors=['app1', 'app2'])
         self.assertEqual(
             str(failure),
             ('PortiaRouter is only able to work with 1 receive outbound '

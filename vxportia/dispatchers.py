@@ -24,6 +24,21 @@ class PortiaDispatcherConfig(Dispatcher.CONFIG_CLASS):
         "transport_name -> endpoint -> MNO name.",
         required=True, static=True)
 
+    def post_validate(self):
+        declared_mnos = []
+        for transport, endpoints in self.mapping.items():
+            for endpoint, mno in endpoints.items():
+                declared_mnos.append(mno)
+
+        if len(set(declared_mnos)) != len(declared_mnos):
+            raise DispatcherError('PortiaDispatcher mappings are not unique.')
+
+        if len(self.receive_outbound_connectors) != 1:
+            raise DispatcherError(
+                ('PortiaRouter is only able to work with 1 receive outbound '
+                 'connector, there are %s configured.') % (
+                    len(self.receive_outbound_connectors,)))
+
 
 class PortiaDispatcher(Dispatcher):
 
@@ -35,20 +50,9 @@ class PortiaDispatcher(Dispatcher):
         config = self.get_static_config()
 
         self.reverse_mno_map = {}
-        declared_mnos = []
         for transport, endpoints in config.mapping.items():
             for endpoint, mno in endpoints.items():
-                declared_mnos.append(mno)
                 self.reverse_mno_map[mno] = [transport, endpoint]
-
-        if len(set(declared_mnos)) != len(declared_mnos):
-            raise DispatcherError('PortiaDispatcher mappings are not unique.')
-
-        if len(config.receive_outbound_connectors) != 1:
-            raise DispatcherError(
-                ('PortiaRouter is only able to work with 1 receive outbound '
-                 'connector, there are %s configured.') % (
-                    len(config.receive_outbound_connectors,)))
 
         self.ro_connector = config.receive_outbound_connectors[0]
         self.portia = yield config.portia_endpoint.connect(
