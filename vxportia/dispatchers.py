@@ -51,7 +51,7 @@ class PortiaDispatcher(Dispatcher):
                     len(config.receive_outbound_connectors,)))
 
         self.ro_connector = config.receive_outbound_connectors[0]
-        self.portia = yield config.portia_connector.connect(
+        self.portia = yield config.portia_endpoint.connect(
             Factory.forProtocol(PortiaProtocol))
         self.portia.clock = self.clock
 
