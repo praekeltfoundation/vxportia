@@ -68,15 +68,18 @@ class TestPortiaDispatcher(VumiTestCase):
         self.assertEqual([msg], dispatched_msgs)
 
     def test_unique_mno_config(self):
-        failure = self.assertRaises(DispatcherError, self.get_dispatcher, mapping={
-            'transport1': {
-                "default": 'mno1',
-            },
-            'transport2': {
-                "default": 'mno1',
-                "ep1": 'mno2',
-            },
-        })
+        failure = self.assertRaises(
+            DispatcherError,
+            self.get_dispatcher,
+            mapping={
+                'transport1': {
+                    "default": 'mno1',
+                },
+                'transport2': {
+                    "default": 'mno1',
+                    "ep1": 'mno2',
+                },
+            })
         self.assertEqual(
             str(failure),
             'PortiaDispatcher mappings are not unique.')

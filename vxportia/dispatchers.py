@@ -1,4 +1,4 @@
-from twisted.internet.defer import inlineCallbacks
+from twisted.internet.defer import inlineCallbacks, returnValue
 from twisted.internet.protocol import Factory
 from twisted.internet import reactor
 
@@ -85,14 +85,18 @@ class PortiaDispatcher(Dispatcher):
             lambda _: self.publish_inbound(msg, self.ro_connector, 'default'))
         return d
 
+    @inlineCallbacks
     def process_outbound(self, config, msg, connector_name):
         msisdn = portia_normalize_msisdn(msg['to_addr'])
-        d = self.portia.resolve(msisdn)
-        d.addCallback(
-            lambda response: self.reverse_mno_map[response['network']])
-        d.addCallback(
-            lambda target: self.publish_outbound(msg, target[0], target[1]))
-        return d
+        response = yield self.portia.resolve(msisdn)
+        if not response['network']:
+            raise DispatcherError(
+                ('Unable to route outbound message to: %s. '
+                 'Portia was unable to resolve: %r.') % (
+                    msisdn, response))
+        target = self.reverse_mno_map[response['network']]
+        msg = yield self.publish_outbound(msg, target[0], target[1])
+        returnValue(msg)
 
     def process_event(self, config, event, connector_name):
         return self.publish_event(event, self.ro_connector, 'default')
