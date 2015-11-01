@@ -100,7 +100,12 @@ class PortiaDispatcher(Dispatcher):
                 ('Unable to route outbound message to: %s. '
                  'Portia was unable to resolve: %r.') % (
                     msisdn, response))
-        target = self.reverse_mno_map[response['network']]
+        target = self.reverse_mno_map.get(response['network'])
+        if not target:
+            raise DispatcherError(
+                ('Unable to route outbound message to: %s. '
+                 'No mapping for: %r.') % (
+                    msg['to_addr'], response['network']))
         msg = yield self.publish_outbound(msg, target[0], target[1])
         returnValue(msg)
 
