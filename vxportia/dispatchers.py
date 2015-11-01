@@ -21,7 +21,7 @@ class PortiaDispatcherConfig(Dispatcher.CONFIG_CLASS):
         required=True, static=True)
     mapping = ConfigDict(
         "How transport names map endpoints and to MNOs. Format is: "
-        "transport_name -> endpoint -> list of MNO names.",
+        "transport_name -> endpoint -> MNO name.",
         required=True, static=True)
 
 
