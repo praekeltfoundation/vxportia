@@ -37,9 +37,9 @@ class PortiaProtocol(LineReceiver):
             "request": kwargs,
         }
         d = Deferred()
-        assasin = self.clock.callLater(
+        assassin = self.clock.callLater(
             self.timeout, self.force_timeout, reference_id)
-        self.queue[reference_id] = (d, assasin)
+        self.queue[reference_id] = (d, assassin)
         self.sendLine(json.dumps(data))
         return d
 
@@ -56,8 +56,8 @@ class PortiaProtocol(LineReceiver):
         if reference is None:
             raise PortiaProtocolException(data)
 
-        d, assasin = reference
-        assasin.cancel()
+        d, assassin = reference
+        assassin.cancel()
         if status == 'ok':
             d.callback(data['response'])
         else:
