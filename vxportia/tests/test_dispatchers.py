@@ -35,7 +35,7 @@ class TestPortiaDispatcher(VumiTestCase):
         self.listener_port = self.listener.getHost().port
 
         # NOTE: setting the clock before the setup_dispatcher stuff is called
-        PortiaDispatcher.clock = Clock()
+        # PortiaDispatcher.clock = Clock()
         self.disp_helper = self.add_helper(DispatcherHelper(PortiaDispatcher))
 
     def get_dispatcher(self, **config_extras):

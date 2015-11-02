@@ -23,7 +23,7 @@ class PortiaProtocol(LineReceiver):
         self.queue = {}
 
     def force_timeout(self, reference_id):
-        d = self.queue.pop(reference_id, None)
+        d, _ = self.queue.pop(reference_id, None)
         if d and not d.called:
             d.errback(PortiaProtocolException('Timeout exceeded.'))
 
@@ -37,8 +37,9 @@ class PortiaProtocol(LineReceiver):
             "request": kwargs,
         }
         d = Deferred()
-        self.clock.callLater(self.timeout, self.force_timeout, reference_id)
-        self.queue[reference_id] = d
+        assasin = self.clock.callLater(
+            self.timeout, self.force_timeout, reference_id)
+        self.queue[reference_id] = (d, assasin)
         self.sendLine(json.dumps(data))
         return d
 
@@ -50,9 +51,13 @@ class PortiaProtocol(LineReceiver):
         data = json.loads(line)
         status = data['status']
         reference_id = data['reference_id']
-        d = self.queue.pop(reference_id, None)
-        if d is None:
+        reference = self.queue.pop(reference_id, None)
+
+        if reference is None:
             raise PortiaProtocolException(data)
+
+        d, assasin = reference
+        assasin.cancel()
         if status == 'ok':
             d.callback(data['response'])
         else:

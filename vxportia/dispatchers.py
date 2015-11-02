@@ -102,14 +102,14 @@ class PortiaDispatcher(Dispatcher):
                         'Unable to connect to Portia after %s seconds.' % (
                             timeout,)))
 
+        assasin = self.clock.callLater(timeout, force_timeout)
+
         def cb():
             if self._portia:
+                assasin.cancel()
                 d.callback(self._portia)
                 return
-            print 'scheduling because', self._portia
-            reactor.callLater(0.05, cb)
-
-        reactor.callLater(timeout, force_timeout)
+            self.clock.callLater(0.05, cb)
 
         cb()
 
@@ -129,8 +129,8 @@ class PortiaDispatcher(Dispatcher):
 
         d = self.get_portia()
         d.addCallback(lambda portia: portia.annotate(
-            portia_normalize_msisdn(
-                msg['from_addr']), key='observed-network', value=mno))
+            portia_normalize_msisdn(msg['from_addr']),
+            key='observed-network', value=mno))
         d.addCallback(
             lambda _: self.publish_inbound(msg, self.ro_connector, 'default'))
         return d
