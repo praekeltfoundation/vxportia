@@ -189,23 +189,6 @@ class TestPortiaClientService(VumiTestCase):
         return self.disp_helper.get_dispatcher(config)
 
     @inlineCallbacks
-    def start_portia_tcpserver(self, endpoint):
-        redis = yield start_redis()
-        self.addCleanup(redis.disconnect)
-
-        portia = Portia(
-            redis,
-            network_prefix_mapping=compile_network_prefix_mappings(
-                [pkg_resources.resource_filename(
-                    'portia', 'assets/mappings/*.mapping.json')]))
-        self.addCleanup(portia.flush)
-
-        listener = yield start_tcpserver(portia, endpoint)
-        self.addCleanup(listener.loseConnection)
-
-        returnValue((listener, portia))
-
-    @inlineCallbacks
     def test_get_portia_timeout(self):
         dispatcher = yield self.get_dispatcher()
         dispatcher.clock = Clock()
