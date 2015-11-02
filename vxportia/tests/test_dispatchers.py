@@ -5,7 +5,6 @@ from portia.utils import (
     start_redis, start_tcpserver, compile_network_prefix_mappings)
 
 from twisted.internet.defer import inlineCallbacks
-from twisted.internet.task import Clock
 
 from vumi.dispatchers.tests.helpers import DispatcherHelper
 from vumi.errors import DispatcherError
@@ -33,9 +32,6 @@ class TestPortiaDispatcher(VumiTestCase):
 
         self.listener_host = self.listener.getHost().host
         self.listener_port = self.listener.getHost().port
-
-        # NOTE: setting the clock before the setup_dispatcher stuff is called
-        # PortiaDispatcher.clock = Clock()
         self.disp_helper = self.add_helper(DispatcherHelper(PortiaDispatcher))
 
     def get_dispatcher(self, **config_extras):
