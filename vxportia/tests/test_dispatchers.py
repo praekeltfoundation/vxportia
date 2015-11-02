@@ -169,7 +169,14 @@ class TestPortiaDispatcher(VumiTestCase):
 class TestPortiaClientService(VumiTestCase):
 
     def setUp(self):
+        self.clock = Clock()
+        # swap!
+        self.original_clock, PortiaDispatcher.clock = (
+            PortiaDispatcher.clock, self.clock)
         self.disp_helper = self.add_helper(DispatcherHelper(PortiaDispatcher))
+
+    def tearDown(self):
+        PortiaDispatcher.clock = self.original_clock
 
     def get_dispatcher(self, **config_extras):
         config = {
@@ -191,9 +198,8 @@ class TestPortiaClientService(VumiTestCase):
     @inlineCallbacks
     def test_get_portia_timeout(self):
         dispatcher = yield self.get_dispatcher()
-        dispatcher.clock = Clock()
         d = dispatcher.get_portia(timeout=10)
-        dispatcher.clock.advance(11)
+        self.clock.advance(11)
         failure = yield self.assertFailure(d, DispatcherError)
         self.assertEqual(
             str(failure), 'Unable to connect to Portia after 10 seconds.')
