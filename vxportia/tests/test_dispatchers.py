@@ -139,3 +139,31 @@ class TestPortiaDispatcher(VumiTestCase):
         self.assert_rkeys_used('app1.outbound', 'transport1.outbound')
         self.assert_dispatched_endpoint(
             msg, 'default', self.ch('transport1').get_dispatched_outbound())
+
+    @inlineCallbacks
+    def test_outbound_message_unresolvable(self):
+        to_addr = '+27123456789'
+        yield self.get_dispatcher()
+        yield self.ch('app1').make_dispatch_outbound(
+            "outbound", to_addr=to_addr)
+        [failure] = self.flushLoggedErrors()
+        self.assertTrue(
+            "Portia was unable to resolve:" in failure.getErrorMessage())
+
+    @inlineCallbacks
+    def test_outbound_message_unroutable(self):
+        to_addr = '+27123456789'
+        yield self.portia.annotate(
+            portia_normalize_msisdn(to_addr),
+            key='observed-network',
+            # NOTE: this is an MNO that is not configured and
+            #       vxportia can not route
+            value='XXX',
+            timestamp=self.portia.now())
+        yield self.get_dispatcher()
+        yield self.ch('app1').make_dispatch_outbound(
+            "outbound", to_addr=to_addr)
+        [failure] = self.flushLoggedErrors()
+        self.assertTrue(
+            "Unable to route outbound message to:"
+            in failure.getErrorMessage())
