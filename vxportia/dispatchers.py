@@ -66,10 +66,7 @@ class PortiaDispatcher(Dispatcher):
         self.portia.clock = self.clock
 
     def teardown_dispatcher(self):
-        # NOTE: the teardown still gets called even if we raised an exception
-        #       during the setup_dispatcher so `portia` can be non existent.
-        if hasattr(self, 'portia'):
-            self.portia.transport.loseConnection()
+        self.portia.transport.loseConnection()
 
     def process_inbound(self, config, msg, connector_name):
         endpoint_name = msg.get_routing_endpoint()
