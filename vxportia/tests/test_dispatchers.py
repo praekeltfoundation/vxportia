@@ -4,7 +4,8 @@ from portia.portia import Portia
 from portia.utils import (
     start_redis, start_tcpserver, compile_network_prefix_mappings)
 
-from twisted.internet.defer import inlineCallbacks
+from twisted.internet.defer import inlineCallbacks, returnValue
+from twisted.internet.task import Clock
 
 from vumi.dispatchers.tests.helpers import DispatcherHelper
 from vumi.errors import DispatcherError
@@ -163,3 +164,53 @@ class TestPortiaDispatcher(VumiTestCase):
         self.assertTrue(
             "Unable to route outbound message to:"
             in failure.getErrorMessage())
+
+
+class TestPortiaClientService(VumiTestCase):
+
+    def setUp(self):
+        self.disp_helper = self.add_helper(DispatcherHelper(PortiaDispatcher))
+
+    def get_dispatcher(self, **config_extras):
+        config = {
+            "receive_inbound_connectors": ["transport1", "transport2"],
+            "receive_outbound_connectors": ["app1"],
+            "portia_endpoint": "tcp:localhost:0",
+            "mapping": {
+                "transport1": {
+                    "default": "mno1"
+                },
+                "transport2": {
+                    "default": "mno2"
+                },
+            }
+        }
+        config.update(config_extras)
+        return self.disp_helper.get_dispatcher(config)
+
+    @inlineCallbacks
+    def start_portia_tcpserver(self, endpoint):
+        redis = yield start_redis()
+        self.addCleanup(redis.disconnect)
+
+        portia = Portia(
+            redis,
+            network_prefix_mapping=compile_network_prefix_mappings(
+                [pkg_resources.resource_filename(
+                    'portia', 'assets/mappings/*.mapping.json')]))
+        self.addCleanup(portia.flush)
+
+        listener = yield start_tcpserver(portia, endpoint)
+        self.addCleanup(listener.loseConnection)
+
+        returnValue((listener, portia))
+
+    @inlineCallbacks
+    def test_get_portia_timeout(self):
+        dispatcher = yield self.get_dispatcher()
+        dispatcher.clock = Clock()
+        d = dispatcher.get_portia(timeout=10)
+        dispatcher.clock.advance(11)
+        failure = yield self.assertFailure(d, DispatcherError)
+        self.assertEqual(
+            str(failure), 'Unable to connect to Portia after 10 seconds.')

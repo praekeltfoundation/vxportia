@@ -1,6 +1,7 @@
 from twisted.internet.defer import inlineCallbacks, returnValue, Deferred
 from twisted.internet.protocol import Factory
 from twisted.internet import reactor
+from twisted.python import log
 
 from vumi.config import ConfigDict, ConfigClientEndpoint
 from vumi.dispatchers.endpoint_dispatchers import Dispatcher
@@ -95,6 +96,8 @@ class PortiaDispatcher(Dispatcher):
     def get_portia(self, timeout=10):
         d = Deferred()
 
+        wait_time = 0.05
+
         def force_timeout():
             if not d.called:
                 d.errback(
@@ -109,7 +112,9 @@ class PortiaDispatcher(Dispatcher):
                 assassin.cancel()
                 d.callback(self._portia)
                 return
-            self.clock.callLater(0.05, cb)
+            log.msg('Not connected to Portia, waiting %s seconds.' % (
+                wait_time,))
+            self.clock.callLater(wait_time, cb)
 
         cb()
 
