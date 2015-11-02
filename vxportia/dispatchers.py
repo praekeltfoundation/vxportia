@@ -85,7 +85,7 @@ class PortiaDispatcher(Dispatcher):
         self.portia_service.startService()
 
     def teardown_dispatcher(self):
-        self.portia_service.stopService()
+        return self.portia_service.stopService()
 
     def clientConnected(self, protocol):
         self._portia = protocol
