@@ -102,11 +102,11 @@ class PortiaDispatcher(Dispatcher):
                         'Unable to connect to Portia after %s seconds.' % (
                             timeout,)))
 
-        assasin = self.clock.callLater(timeout, force_timeout)
+        assassin = self.clock.callLater(timeout, force_timeout)
 
         def cb():
             if self._portia:
-                assasin.cancel()
+                assassin.cancel()
                 d.callback(self._portia)
                 return
             self.clock.callLater(0.05, cb)
